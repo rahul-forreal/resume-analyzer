@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node server/server.js",
+    "build": "cd client && npm run build",
+    "postinstall": "cd client && npm install --no-audit --no-fund && npm run build"
   },
   "keywords": [],
   "author": "",

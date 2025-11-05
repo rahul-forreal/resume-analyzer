@@ -149,8 +149,9 @@ app.listen(PORT, () => {
 const clientBuildPath = path.join(__dirname, "..", "client", "build");
 if (fs.existsSync(clientBuildPath)) {
   app.use(express.static(clientBuildPath));
-  app.get("*", (req, res, next) => {
-    if (req.path.startsWith("/api/")) return next();
+  // Serve React app for any non-API route. Use a regex to avoid path-to-regexp
+  // parsing issues with unnamed wildcard parameters.
+  app.get(/^\/(?!api\/).*/, (req, res) => {
     res.sendFile(path.join(clientBuildPath, "index.html"));
   });
 }
