@@ -25,7 +25,7 @@ app.use("/api/", limiter);
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = "uploads/";
+    const uploadPath = path.join(__dirname, "uploads");
     fs.ensureDirSync(uploadPath);
     cb(null, uploadPath);
   },
@@ -46,15 +46,16 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
       "application/pdf",
-      "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
+    const allowedExts = [".pdf", ".docx"];
+    const ext = path.extname(file.originalname || "").toLowerCase();
 
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Invalid file type. Only PDF and DOCX files are allowed."));
+    if (!allowedTypes.includes(file.mimetype) || !allowedExts.includes(ext)) {
+      // return a clear error that will be handled by middleware
+      return cb(new Error("Unsupported file type"), false);
     }
+    cb(null, true);
   },
 });
 
@@ -128,6 +129,12 @@ app.use((error, req, res, next) => {
         .status(400)
         .json({ error: "File too large. Maximum size is 5MB." });
     }
+  }
+
+  if (error && error.message === "Unsupported file type") {
+    return res
+      .status(400)
+      .json({ error: "Unsupported file type. Upload a .pdf or .docx file." });
   }
 
   console.error("Server error:", error);

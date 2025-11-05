@@ -414,8 +414,11 @@ function extractKeyInfo(text) {
 function extractExperience(text) {
   const yearMatches = text.match(/\b(19|20)\d{2}\b/g);
   if (yearMatches && yearMatches.length >= 2) {
-    const years = yearMatches.map((y) => parseInt(y)).sort();
-    const experienceYears = years[years.length - 1] - years;
+    const years = yearMatches.map((y) => parseInt(y, 10)).sort((a, b) => a - b);
+    const experienceYears = years[years.length - 1] - years[0];
+    if (!Number.isFinite(experienceYears) || experienceYears < 0) {
+      return "Not specified";
+    }
     return `${experienceYears}+ years`;
   }
   return "Not specified";

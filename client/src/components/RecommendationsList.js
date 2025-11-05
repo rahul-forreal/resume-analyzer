@@ -65,7 +65,7 @@ const RecommendationItem = styled.div`
 
 const RecommendationHeader = styled.div`
   display: flex;
-  justify-content: between;
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
 `;
