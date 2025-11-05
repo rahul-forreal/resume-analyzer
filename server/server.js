@@ -144,3 +144,13 @@ app.use((error, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Resume Analyzer API running on port ${PORT}`);
 });
+
+// Serve client build if present (for deployment on Render / single-service hosting)
+const clientBuildPath = path.join(__dirname, "..", "client", "build");
+if (fs.existsSync(clientBuildPath)) {
+  app.use(express.static(clientBuildPath));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api/")) return next();
+    res.sendFile(path.join(clientBuildPath, "index.html"));
+  });
+}
