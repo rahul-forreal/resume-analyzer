@@ -98,7 +98,7 @@ const Suggestion = styled.p`
 `;
 
 function RecommendationsList({ recommendations, strengths }) {
-  const sortedRecommendations = recommendations.sort((a, b) => {
+  const sortedRecommendations = [...(recommendations || [])].sort((a, b) => {
     const priority = { high: 3, medium: 2, low: 1 };
     return priority[b.priority] - priority[a.priority];
   });
