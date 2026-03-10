@@ -12,122 +12,97 @@ const Header = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #f7fafc;
-`;
-
-const Title = styled.h2`
-  font-size: 2rem;
-  color: #2d3748;
-  margin: 0;
 `;
 
 const ResetButton = styled.button`
   background: #667eea;
   color: white;
   border: none;
-  padding: 12px 24px;
+  padding: 12px 20px;
   border-radius: 8px;
-  font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+`;
 
-  &:hover {
-    background: #5a67d8;
+const RankingTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+
+  td,
+  th {
+    border-bottom: 1px solid #edf2f7;
+    padding: 10px;
+    text-align: left;
   }
-`;
-
-const ResultsGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 30px;
-  margin-bottom: 40px;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const MetadataContainer = styled.div`
-  background: #f7fafc;
-  padding: 20px;
-  border-radius: 12px;
-  margin-top: 30px;
-`;
-
-const MetadataTitle = styled.h3`
-  font-size: 1.2rem;
-  color: #4a5568;
-  margin: 0 0 15px 0;
-`;
-
-const MetadataItem = styled.div`
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
-`;
-
-const MetadataLabel = styled.span`
-  color: #718096;
-`;
-
-const MetadataValue = styled.span`
-  color: #2d3748;
-  font-weight: 500;
 `;
 
 function AnalysisResults({ result, onReset }) {
+  if (result.mode === "ranking") {
+    return (
+      <ResultsContainer>
+        <Header>
+          <h2>Multi-Resume Ranking Results</h2>
+          <ResetButton onClick={onReset}>Analyze Again</ResetButton>
+        </Header>
+
+        <RankingTable>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Candidate File</th>
+              <th>Smart Score</th>
+              <th>Semantic Match</th>
+            </tr>
+          </thead>
+          <tbody>
+            {result.ranking.map((candidate) => (
+              <tr key={candidate.filename}>
+                <td>#{candidate.rank}</td>
+                <td>{candidate.filename}</td>
+                <td>{candidate.candidateScore}</td>
+                <td>{candidate.analysis.breakdown.semanticMatch.score}</td>
+              </tr>
+            ))}
+          </tbody>
+        </RankingTable>
+
+        <p style={{ marginTop: "16px", color: "#4a5568" }}>
+          Average score: <strong>{result.insights.avgScore}</strong> • Spread: <strong>{result.insights.scoreSpread}</strong>
+        </p>
+      </ResultsContainer>
+    );
+  }
+
   const { analysis, metadata } = result;
 
   return (
     <ResultsContainer>
       <Header>
-        <Title>Resume Analysis Results</Title>
+        <h2>AI Resume Analysis Results</h2>
         <ResetButton onClick={onReset}>Analyze Another Resume</ResetButton>
       </Header>
 
-      <ResultsGrid>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "24px" }}>
         <ScoreCard analysis={analysis} />
-        <RecommendationsList
-          recommendations={analysis.recommendations}
-          strengths={analysis.strengths}
-        />
-      </ResultsGrid>
+        <RecommendationsList recommendations={analysis.recommendations} strengths={analysis.strengths} />
+      </div>
 
-      <MetadataContainer>
-        <MetadataTitle>Analysis Details</MetadataTitle>
-        <MetadataItem>
-          <MetadataLabel>File Name:</MetadataLabel>
-          <MetadataValue>{metadata.filename}</MetadataValue>
-        </MetadataItem>
-        <MetadataItem>
-          <MetadataLabel>File Size:</MetadataLabel>
-          <MetadataValue>
-            {(metadata.fileSize / 1024).toFixed(1)} KB
-          </MetadataValue>
-        </MetadataItem>
-        <MetadataItem>
-          <MetadataLabel>Analysis Time:</MetadataLabel>
-          <MetadataValue>
-            {new Date(metadata.uploadTime).toLocaleString()}
-          </MetadataValue>
-        </MetadataItem>
-        {analysis.extractedInfo && (
-          <>
-            <MetadataItem>
-              <MetadataLabel>Estimated Experience:</MetadataLabel>
-              <MetadataValue>
-                {analysis.extractedInfo.estimatedExperience}
-              </MetadataValue>
-            </MetadataItem>
-            <MetadataItem>
-              <MetadataLabel>Education Level:</MetadataLabel>
-              <MetadataValue>{analysis.extractedInfo.education}</MetadataValue>
-            </MetadataItem>
-          </>
-        )}
-      </MetadataContainer>
+      {analysis.llmFeedback && (
+        <div style={{ marginTop: 24, background: "#f8fafc", borderRadius: 12, padding: 20 }}>
+          <h3>LLM Resume Feedback ({analysis.llmFeedback.provider})</h3>
+          <p>{analysis.llmFeedback.summary}</p>
+          <ul>
+            {(analysis.llmFeedback.bulletFeedback || []).map((item, idx) => (
+              <li key={idx}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div style={{ marginTop: 24 }}>
+        <p><strong>File:</strong> {metadata.filename}</p>
+        <p><strong>Experience:</strong> {analysis.extractedInfo.estimatedExperience}</p>
+        <p><strong>Top Skills:</strong> {(analysis.extractedInfo.topSkills || []).join(", ") || "N/A"}</p>
+      </div>
     </ResultsContainer>
   );
 }
